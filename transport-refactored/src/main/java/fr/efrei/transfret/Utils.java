@@ -5,10 +5,12 @@ import java.util.Date;
 
 public class Utils {
 
+    private static final double CENTIMES = 100.0;
+
     public static SimpleDateFormat FORMAT_DATE = new SimpleDateFormat("dd/MM/yyyy");
 
     public static double arrondir(double valeur) {
-        return Math.round(valeur * 100.0) / 100.0;
+        return Math.round(valeur * CENTIMES) / CENTIMES;
     }
 
     public static String formaterDate(Date d) {

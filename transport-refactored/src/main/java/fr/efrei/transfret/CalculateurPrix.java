@@ -4,7 +4,32 @@ import java.util.List;
 
 public class CalculateurPrix {
 
-    public double calculerPrixHT(List<Colis> colis, int distance, String mode, boolean urgent, boolean assurance, String typeClient) {
+    private static final double PRIX_KM_ROUTE = 1.2;
+    private static final double PRIX_KG_ROUTE = 0.10;
+    private static final double PRIX_KM_RAIL = 0.8;
+    private static final double PRIX_KG_RAIL = 0.07;
+    private static final double MINIMUM_RAIL = 150;
+    private static final double PRIX_KM_MER = 0.5;
+    private static final double PRIX_KG_MER = 0.03;
+    private static final double MINIMUM_MER = 500;
+    private static final double PRIX_KM_AIR = 0.6;
+    private static final double PRIX_KG_AIR = 4.5;
+    private static final double KG_PAR_M3_AIR = 167;
+
+    private static final double COEF_FRAGILE = 1.15;
+    private static final double COEF_DANGEREUX = 1.30;
+    private static final double COEF_REFRIGERE = 1.20;
+    private static final double COEF_URGENT = 1.5;
+
+    private static final double SEUIL_GROSSE_COMMANDE = 5000;
+    private static final double COEF_REMISE_ENTREPRISE = 0.90;
+    private static final double COEF_REMISE_ENTREPRISE_GROSSE_COMMANDE = 0.85;
+    private static final double COEF_REMISE_PREMIUM = 0.80;
+
+    private static final double TAUX_ASSURANCE = 0.02;
+    private static final double MINIMUM_ASSURANCE = 15;
+
+    public double calculerPrixHT(List<Colis> colis, int distance, ModeTransport mode, boolean urgent, boolean assurance, TypeClient typeClient) {
         double poids = 0;
         double volume = 0;
         double valeur = 0;
@@ -15,54 +40,54 @@ public class CalculateurPrix {
             poids = poids + c.getPoids();
             volume = volume + c.getVolume();
             valeur = valeur + c.getValeurDeclaree();
-            if (c.getType() == 1) fragile = true;
-            if (c.getType() == 2) dangereux = true;
-            if (c.getType() == 3) refrigere = true;
+            if (c.getType() == TypeMarchandise.FRAGILE) fragile = true;
+            if (c.getType() == TypeMarchandise.DANGEREUX) dangereux = true;
+            if (c.getType() == TypeMarchandise.REFRIGERE) refrigere = true;
         }
 
         // tarif de base selon le mode
         double prix;
-        if (mode.equals("ROUTE")) {
-            prix = distance * 1.2 + poids * 0.10;
-        } else if (mode.equals("RAIL")) {
-            prix = distance * 0.8 + poids * 0.07;
-            if (prix < 150) prix = 150;
-        } else if (mode.equals("MER")) {
-            prix = distance * 0.5 + poids * 0.03;
-            if (prix < 500) prix = 500;
-        } else if (mode.equals("AIR")) {
+        if (mode == ModeTransport.ROUTE) {
+            prix = distance * PRIX_KM_ROUTE + poids * PRIX_KG_ROUTE;
+        } else if (mode == ModeTransport.RAIL) {
+            prix = distance * PRIX_KM_RAIL + poids * PRIX_KG_RAIL;
+            if (prix < MINIMUM_RAIL) prix = MINIMUM_RAIL;
+        } else if (mode == ModeTransport.MER) {
+            prix = distance * PRIX_KM_MER + poids * PRIX_KG_MER;
+            if (prix < MINIMUM_MER) prix = MINIMUM_MER;
+        } else if (mode == ModeTransport.AIR) {
             double poidsTaxable = poids;
-            if (volume * 167 > poids) {
-                poidsTaxable = volume * 167;
+            if (volume * KG_PAR_M3_AIR > poids) {
+                poidsTaxable = volume * KG_PAR_M3_AIR;
             }
-            prix = distance * 0.6 + poidsTaxable * 4.5;
+            prix = distance * PRIX_KM_AIR + poidsTaxable * PRIX_KG_AIR;
         } else {
             throw new IllegalArgumentException("Mode inconnu : " + mode);
         }
 
         // suppléments
-        if (fragile) prix = prix * 1.15;
-        if (dangereux) prix = prix * 1.30;
-        if (refrigere) prix = prix * 1.20;
-        if (urgent) prix = prix * 1.5;
+        if (fragile) prix = prix * COEF_FRAGILE;
+        if (dangereux) prix = prix * COEF_DANGEREUX;
+        if (refrigere) prix = prix * COEF_REFRIGERE;
+        if (urgent) prix = prix * COEF_URGENT;
 
         // remise client
-        if (typeClient.equals("ENTREPRISE")) {
-            if (prix > 5000) {
-                prix = prix * 0.85;
+        if (typeClient == TypeClient.ENTREPRISE) {
+            if (prix > SEUIL_GROSSE_COMMANDE) {
+                prix = prix * COEF_REMISE_ENTREPRISE_GROSSE_COMMANDE;
             } else {
-                prix = prix * 0.90;
+                prix = prix * COEF_REMISE_ENTREPRISE;
             }
-        } else if (typeClient.equals("PREMIUM")) {
-            prix = prix * 0.80;
+        } else if (typeClient == TypeClient.PREMIUM) {
+            prix = prix * COEF_REMISE_PREMIUM;
         }
 
         // assurance
         if (assurance) {
-            double montantAssurance = valeur * 0.02;
-            if (montantAssurance < 15) montantAssurance = 15;
+            double montantAssurance = valeur * TAUX_ASSURANCE;
+            if (montantAssurance < MINIMUM_ASSURANCE) montantAssurance = MINIMUM_ASSURANCE;
             prix = prix + montantAssurance;
         }
-        return Math.round(prix * 100.0) / 100.0;
+        return Utils.arrondir(prix);
     }
 }
