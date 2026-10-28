@@ -7,7 +7,7 @@ public class Utils {
 
     private static final double CENTIMES = 100.0;
 
-    public static SimpleDateFormat FORMAT_DATE = new SimpleDateFormat("dd/MM/yyyy");
+    private static final String FORMAT_DATE = "dd/MM/yyyy";
 
     public static double arrondir(double valeur) {
         return Math.round(valeur * CENTIMES) / CENTIMES;
@@ -17,7 +17,7 @@ public class Utils {
         if (d == null) {
             return "";
         }
-        return FORMAT_DATE.format(d);
+        return new SimpleDateFormat(FORMAT_DATE).format(d);
     }
 
     public static String formaterPrix(double prix) {

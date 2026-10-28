@@ -6,9 +6,11 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        Flotte.initialiser();
-        ServiceClient serviceClient = new ServiceClient();
-        ServiceExpedition serviceExpedition = new ServiceExpedition();
+        // construction de tous les objets du programme
+        Notificateur notificateur = new Notificateur(new EmailService(), new SmsService());
+        ServiceClient serviceClient = new ServiceClient(new ClientRepositoryEnMemoire(), new ValidateurClient(), notificateur);
+        ServiceExpedition serviceExpedition = new ServiceExpedition(new ExpeditionRepositoryEnMemoire(), new CalculateurPrix(),
+                new AffectationVehicule(new Flotte()), new ValidateurExpedition(), new EstimateurDelai(), notificateur);
 
         System.out.println("\n----- Clients -----");
         Client dupont = serviceClient.creerClient("Jean Dupont", "jean.dupont@mail.fr", "0601020304", "12 rue de la Paix, 75002 Paris", TypeClient.PARTICULIER, null);
