@@ -4,8 +4,6 @@ import java.util.List;
 
 public class CalculateurPrix {
 
-    private static final double PRIX_KM_ROUTE = 1.2;
-    private static final double PRIX_KG_ROUTE = 0.10;
     private static final double PRIX_KM_RAIL = 0.8;
     private static final double PRIX_KG_RAIL = 0.07;
     private static final double MINIMUM_RAIL = 150;
@@ -48,7 +46,7 @@ public class CalculateurPrix {
         // tarif de base selon le mode
         double prix;
         if (mode == ModeTransport.ROUTE) {
-            prix = distance * PRIX_KM_ROUTE + poids * PRIX_KG_ROUTE;
+            prix = new TarifRoute().calculer(distance, poids, volume);
         } else if (mode == ModeTransport.RAIL) {
             prix = distance * PRIX_KM_RAIL + poids * PRIX_KG_RAIL;
             if (prix < MINIMUM_RAIL) prix = MINIMUM_RAIL;
